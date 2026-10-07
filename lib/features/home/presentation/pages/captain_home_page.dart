@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/session/captain_session.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/yalla_go_captain_logo.dart';
 import '../../../wallet/presentation/pages/wallet_top_up_page.dart';
 
 class CaptainHomePage extends StatefulWidget {
@@ -17,370 +16,574 @@ class _CaptainHomePageState extends State<CaptainHomePage> {
   bool online = false;
 
   bool get approved => CaptainSession.status == 'approved';
-  bool get activated =>
-      approved &&
+  bool get activated => approved &&
       CaptainSession.activationPaid &&
       CaptainSession.initialTopUpCompleted;
 
   Future<void> _toggleOnline() async {
     if (!activated) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('أكمل التفعيل وشحن المحفظة أولاً')),
+        const SnackBar(content: Text('أكمل تفعيل الحساب وشحن المحفظة أولاً')),
       );
       return;
     }
-    final value = !online;
-    setState(() => online = value);
+    final next = !online;
+    setState(() => online = next);
     try {
       await FirebaseDatabase.instance
           .ref('captains/${CaptainSession.phoneKey}')
           .update({
-        'isOnline': value,
+        'isOnline': next,
         'lastOnlineAt': ServerValue.timestamp,
       });
     } catch (_) {
-      if (!mounted) return;
-      setState(() => online = !value);
+      if (mounted) setState(() => online = !next);
     }
   }
 
-  void _openWallet() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const WalletTopUpPage()),
-    );
-  }
+  void _openWallet() => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const WalletTopUpPage()),
+      );
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        backgroundColor: AppColors.background,
-        body: SafeArea(
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: Container(
-                  color: const Color(0xFFE5EEF2),
-                  child: CustomPaint(painter: _MapPainter()),
-                ),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFEAF1F4),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            const Positioned.fill(child: _MapBackground()),
+            Positioned(
+              top: 18,
+              left: 18,
+              right: 18,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _GlassButton(icon: Icons.menu_rounded, onTap: () {}),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 9,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(.94),
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x12062B46),
+                          blurRadius: 20,
+                          offset: Offset(0, 7),
+                        ),
+                      ],
+                    ),
+                    child: const Row(
+                      children: [
+                        _MiniBrandMark(),
+                        SizedBox(width: 8),
+                        Text(
+                          'Yalla Go',
+                          style: TextStyle(
+                            color: AppColors.navy,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _GlassButton(
+                    icon: Icons.notifications_none_rounded,
+                    onTap: () {},
+                  ),
+                ],
               ),
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(color: Color(0x12000000), blurRadius: 18),
+            ),
+            Positioned(
+              top: 94,
+              left: 20,
+              right: 20,
+              child: GestureDetector(
+                onTap: _toggleOnline,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: online ? AppColors.navy : Colors.white,
+                    borderRadius: BorderRadius.circular(26),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x1B062B46),
+                        blurRadius: 28,
+                        offset: Offset(0, 10),
+                      ),
                     ],
                   ),
                   child: Row(
-                    children: [
-                      _RoundButton(icon: Icons.menu_rounded, onTap: () {}),
-                      const Expanded(
-                        child: Center(
-                          child: YallaGoCaptainLogo(size: 42, showName: false),
-                        ),
-                      ),
-                      _RoundButton(
-                        icon: Icons.notifications_none_rounded,
-                        onTap: () {},
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 92,
-                left: 18,
-                right: 18,
-                child: GestureDetector(
-                  onTap: _toggleOnline,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 17,
-                      vertical: 14,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x16000000),
-                          blurRadius: 22,
-                          offset: Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      textDirection: TextDirection.rtl,
-                      children: [
-                        Container(
-                          width: 48,
-                          height: 28,
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: online
-                                ? AppColors.turquoise
-                                : const Color(0xFFDDE5E9),
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: AnimatedAlign(
-                            duration: const Duration(milliseconds: 180),
-                            alignment: online
-                                ? Alignment.centerLeft
-                                : Alignment.centerRight,
-                            child: const CircleAvatar(
-                              radius: 10,
-                              backgroundColor: Colors.white,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                online ? 'أنت متصل الآن' : 'أنت غير متصل',
-                                textDirection: TextDirection.rtl,
-                                style: const TextStyle(
-                                  color: AppColors.textDark,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                              Text(
-                                online
-                                    ? 'جاهز لاستقبال طلبات الرحلات'
-                                    : activated
-                                        ? 'اضغط للاتصال واستقبال الرحلات'
-                                        : 'أكمل تفعيل الحساب والمحفظة أولاً',
-                                textDirection: TextDirection.rtl,
-                                style: const TextStyle(
-                                  color: AppColors.textMuted,
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Icon(
-                          online
-                              ? Icons.radio_button_checked_rounded
-                              : Icons.radio_button_off_rounded,
-                          color: online
-                              ? AppColors.success
-                              : AppColors.textMuted,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const Positioned(
-                top: 215,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: _LocationMarker(),
-                ),
-              ),
-              Positioned(
-                left: 14,
-                right: 14,
-                bottom: 14,
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x1A000000),
-                        blurRadius: 28,
-                        offset: Offset(0, -5),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                    textDirection: TextDirection.rtl,
                     children: [
                       Container(
-                        width: 42,
-                        height: 4,
+                        width: 56,
+                        height: 56,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFD9E1E5),
-                          borderRadius: BorderRadius.circular(10),
+                          color: online
+                              ? AppColors.turquoise
+                              : AppColors.surfaceSoft,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Icon(
+                          online
+                              ? Icons.power_settings_new_rounded
+                              : Icons.power_settings_new_rounded,
+                          color: online ? Colors.white : AppColors.navy,
+                          size: 28,
                         ),
                       ),
-                      const SizedBox(height: 18),
-                      Row(
-                        textDirection: TextDirection.rtl,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                const Text(
-                                  'محفظتك',
-                                  textDirection: TextDirection.rtl,
-                                  style: TextStyle(
-                                    color: AppColors.textDark,
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  activated
-                                      ? 'رصيد العمولة المتاح'
-                                      : 'اشحن المحفظة علشان تبدأ تستقبل رحلات',
-                                  textDirection: TextDirection.rtl,
-                                  style: const TextStyle(
-                                    color: AppColors.textMuted,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ],
+                      const SizedBox(width: 13),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              online ? 'متصل وجاهز' : 'أنت غير متصل',
+                              textDirection: TextDirection.rtl,
+                              style: TextStyle(
+                                color: online
+                                    ? Colors.white
+                                    : AppColors.textDark,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w900,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            '${CaptainSession.walletBalance.toStringAsFixed(0)} ج',
-                            textDirection: TextDirection.rtl,
-                            style: const TextStyle(
-                              color: AppColors.navy,
-                              fontSize: 27,
-                              fontWeight: FontWeight.w900,
+                            const SizedBox(height: 2),
+                            Text(
+                              online
+                                  ? 'هنعرض لك الرحلات القريبة فور وصولها'
+                                  : activated
+                                      ? 'اضغط هنا وابدأ استقبال الرحلات'
+                                      : 'أكمل تفعيل الحساب والمحفظة للبدء',
+                              textDirection: TextDirection.rtl,
+                              style: TextStyle(
+                                color: online
+                                    ? Colors.white.withOpacity(.68)
+                                    : AppColors.textMuted,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: FilledButton.icon(
-                          onPressed: _openWallet,
-                          icon: const Icon(Icons.add_card_rounded),
-                          label: const Text('شحن المحفظة لاستقبال الرحلات'),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'حوّل على 01115057318 ثم ارفع الإيصال للمراجعة',
-                        textDirection: TextDirection.rtl,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                      const SizedBox(width: 10),
+                      Container(
+                        width: 9,
+                        height: 9,
+                        decoration: BoxDecoration(
+                          color: online
+                              ? const Color(0xFF56E29A)
+                              : const Color(0xFFBCC8CE),
+                          shape: BoxShape.circle,
                         ),
                       ),
+                      const SizedBox(width: 14),
                     ],
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 210,
+              right: 24,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 13,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(.92),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0x10000000), blurRadius: 16),
+                  ],
+                ),
+                child: const Row(
+                  textDirection: TextDirection.rtl,
+                  children: [
+                    Icon(
+                      Icons.my_location_rounded,
+                      size: 15,
+                      color: AppColors.turquoiseDark,
+                    ),
+                    SizedBox(width: 6),
+                    Text(
+                      'سوهاج',
+                      textDirection: TextDirection.rtl,
+                      style: TextStyle(
+                        color: AppColors.navy,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const Positioned.fill(
+              top: 180,
+              bottom: 250,
+              child: Center(child: _CaptainMapMarker()),
+            ),
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: 12,
+              child: _BottomPanel(
+                activated: activated,
+                approved: approved,
+                online: online,
+                onWallet: _openWallet,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BottomPanel extends StatelessWidget {
+  const _BottomPanel({
+    required this.activated,
+    required this.approved,
+    required this.online,
+    required this.onWallet,
+  });
+
+  final bool activated;
+  final bool approved;
+  final bool online;
+  final VoidCallback onWallet;
+
+  @override
+  Widget build(BuildContext context) {
+    final subtitle = !approved
+        ? 'حسابك قيد المراجعة'
+        : !activated
+            ? 'اشحن المحفظة لتبدأ استقبال الرحلات'
+            : online
+                ? 'أنت الآن متاح للرحلات القريبة'
+                : 'اتصل علشان تبدأ استقبال الرحلات';
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x24062B46),
+            blurRadius: 34,
+            offset: Offset(0, -8),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 38,
+            height: 4,
+            decoration: BoxDecoration(
+              color: const Color(0xFFDCE5E9),
+              borderRadius: BorderRadius.circular(20),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            textDirection: TextDirection.rtl,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE9FAFB),
+                  borderRadius: BorderRadius.circular(17),
+                ),
+                child: const Icon(
+                  Icons.account_balance_wallet_rounded,
+                  color: AppColors.turquoiseDark,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const Text(
+                      'رصيد المحفظة',
+                      textDirection: TextDirection.rtl,
+                      style: TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      '${CaptainSession.walletBalance.toStringAsFixed(0)} جنيه',
+                      textDirection: TextDirection.rtl,
+                      style: const TextStyle(
+                        color: AppColors.navy,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F7),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  '15% عمولة',
+                  textDirection: TextDirection.rtl,
+                  style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
             ],
           ),
-        ),
-      );
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              subtitle,
+              textDirection: TextDirection.rtl,
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(height: 13),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: onWallet,
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(54),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_rounded, size: 21),
+                  SizedBox(width: 7),
+                  Text(
+                    'شحن المحفظة',
+                    style: TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 9),
+          const Text(
+            'حوّل على 01115057318 وارفع الإيصال للمراجعة',
+            textDirection: TextDirection.rtl,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-class _RoundButton extends StatelessWidget {
-  const _RoundButton({required this.icon, required this.onTap});
+class _GlassButton extends StatelessWidget {
+  const _GlassButton({required this.icon, required this.onTap});
+
   final IconData icon;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) => Material(
-        color: AppColors.surfaceSoft,
-        borderRadius: BorderRadius.circular(15),
+        color: Colors.white.withOpacity(.94),
+        borderRadius: BorderRadius.circular(17),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(17),
           child: SizedBox(
-            width: 43,
-            height: 43,
-            child: Icon(icon, color: AppColors.navy),
+            width: 46,
+            height: 46,
+            child: Icon(icon, color: AppColors.navy, size: 22),
           ),
         ),
       );
 }
 
-class _LocationMarker extends StatelessWidget {
-  const _LocationMarker();
+class _MiniBrandMark extends StatelessWidget {
+  const _MiniBrandMark();
 
   @override
   Widget build(BuildContext context) => Container(
-        width: 64,
-        height: 64,
-        decoration: const BoxDecoration(
-          color: Color(0x3308B8C5),
-          shape: BoxShape.circle,
+        width: 27,
+        height: 27,
+        decoration: BoxDecoration(
+          color: AppColors.navy,
+          borderRadius: BorderRadius.circular(9),
         ),
+        child: const Icon(
+          Icons.near_me_rounded,
+          color: AppColors.turquoise,
+          size: 15,
+        ),
+      );
+}
+
+class _CaptainMapMarker extends StatelessWidget {
+  const _CaptainMapMarker();
+
+  @override
+  Widget build(BuildContext context) => Stack(
         alignment: Alignment.center,
-        child: Container(
-          width: 26,
-          height: 26,
-          decoration: BoxDecoration(
-            color: AppColors.turquoise,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 5),
-            boxShadow: const [
-              BoxShadow(color: Color(0x33000000), blurRadius: 10),
-            ],
+        children: [
+          Container(
+            width: 94,
+            height: 94,
+            decoration: const BoxDecoration(
+              color: Color(0x1F08B8C5),
+              shape: BoxShape.circle,
+            ),
           ),
-        ),
+          Container(
+            width: 60,
+            height: 60,
+            decoration: const BoxDecoration(
+              color: Color(0x3008B8C5),
+              shape: BoxShape.circle,
+            ),
+          ),
+          Container(
+            width: 31,
+            height: 31,
+            decoration: BoxDecoration(
+              color: AppColors.navy,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 4),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x33062B46),
+                  blurRadius: 12,
+                  offset: Offset(0, 5),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.navigation_rounded,
+              size: 14,
+              color: AppColors.turquoise,
+            ),
+          ),
+        ],
+      );
+}
+
+class _MapBackground extends StatelessWidget {
+  const _MapBackground();
+
+  @override
+  Widget build(BuildContext context) => Container(
+        color: const Color(0xFFEAF1F4),
+        child: CustomPaint(painter: _MapPainter()),
       );
 }
 
 class _MapPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final road = Paint()
+    final nile = Paint()
+      ..color = const Color(0xFFBDE9EE)
+      ..strokeWidth = 58
+      ..strokeCap = StrokeCap.round;
+    final nileEdge = Paint()
+      ..color = const Color(0xFFD5F3F5)
+      ..strokeWidth = 68
+      ..strokeCap = StrokeCap.round;
+    final mainRoad = Paint()
       ..color = Colors.white
-      ..strokeWidth = 11
+      ..strokeWidth = 12
       ..strokeCap = StrokeCap.round;
-    final smallRoad = Paint()
-      ..color = const Color(0xFFF7FAFB)
-      ..strokeWidth = 6
+    final street = Paint()
+      ..color = const Color(0xFFF8FAFB)
+      ..strokeWidth = 7
       ..strokeCap = StrokeCap.round;
-    final river = Paint()
-      ..color = const Color(0xFFBEEAF0)
-      ..strokeWidth = 48
-      ..strokeCap = StrokeCap.round;
+    final block = Paint()..color = const Color(0xFFDCE6E9);
 
-    final riverPath = Path()
-      ..moveTo(size.width * .76, -20)
+    final river = Path()
+      ..moveTo(size.width * .78, -30)
       ..cubicTo(
-        size.width * .64,
-        size.height * .22,
+        size.width * .60,
+        size.height * .23,
         size.width * .88,
-        size.height * .46,
-        size.width * .70,
-        size.height * .74,
+        size.height * .45,
+        size.width * .68,
+        size.height * .78,
       );
-    canvas.drawPath(riverPath, river);
+    canvas.drawPath(river, nileEdge);
+    canvas.drawPath(river, nile);
 
-    for (final y in [.24, .40, .56, .69]) {
+    for (final data in [
+      [.10, .18, .32, .11],
+      [.04, .34, .45, .27],
+      [.12, .51, .57, .42],
+      [.00, .67, .51, .60],
+      [.30, .77, .78, .65],
+    ]) {
       canvas.drawLine(
-        Offset(-20, size.height * y),
-        Offset(size.width + 20, size.height * (y - .09)),
-        road,
+        Offset(size.width * data[0], size.height * data[1]),
+        Offset(size.width * data[2], size.height * data[3]),
+        mainRoad,
       );
     }
-    for (final x in [.18, .43, .58]) {
+
+    for (final x in [.12, .31, .48, .58]) {
       canvas.drawLine(
-        Offset(size.width * x, 70),
-        Offset(size.width * (x + .13), size.height * .78),
-        smallRoad,
+        Offset(size.width * x, size.height * .15),
+        Offset(size.width * (x + .09), size.height * .73),
+        street,
+      );
+    }
+
+    for (var i = 0; i < 13; i++) {
+      final dx = 18.0 + (i % 4) * 72;
+      final dy = 180.0 + (i ~/ 4) * 105;
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(dx, dy, 38, 24),
+          const Radius.circular(6),
+        ),
+        block,
       );
     }
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
