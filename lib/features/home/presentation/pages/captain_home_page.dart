@@ -13,7 +13,7 @@ class _CaptainHomePageState extends State<CaptainHomePage> {
   bool online = false;
 
   bool get approved => CaptainSession.status == 'approved';
-  bool get activated => approved && CaptainSession.walletBalance >= 100;
+  bool get activated => approved && CaptainSession.activationPaid && CaptainSession.initialTopUpCompleted;
 
   Future<void> _toggle(bool value) async {
     if (!activated) return;
