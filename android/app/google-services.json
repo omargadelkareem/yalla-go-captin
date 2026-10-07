@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "698417262464",
+    "firebase_url": "https://yalla-go-603c3-default-rtdb.firebaseio.com",
+    "project_id": "yalla-go-603c3",
+    "storage_bucket": "yalla-go-603c3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:698417262464:android:e8fa37e932114147455b65",
+        "android_client_info": {
+          "package_name": "com.example.yalla_go"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6XotVjRFnInw9LpzFHNuFZZUDYJTw_CI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:698417262464:android:e4d85f8d0ceef8e5455b65",
+        "android_client_info": {
+          "package_name": "com.example.yalla_go_captain"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6XotVjRFnInw9LpzFHNuFZZUDYJTw_CI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
