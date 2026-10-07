@@ -7,6 +7,8 @@ class CaptainSession {
   static String? status;
   static String? vehicleType;
   static double walletBalance = 0;
+  static bool activationPaid = false;
+  static bool initialTopUpCompleted = false;
 
   static bool get hasCaptain => phoneKey != null;
 
@@ -17,6 +19,8 @@ class CaptainSession {
     status = data['status']?.toString() ?? 'pending';
     vehicleType = data['vehicleType']?.toString();
     walletBalance = (data['walletBalance'] as num?)?.toDouble() ?? 0;
+    activationPaid = data['activationPaid'] == true;
+    initialTopUpCompleted = data['initialTopUpCompleted'] == true;
   }
 
   static void clear() {
@@ -26,5 +30,7 @@ class CaptainSession {
     status = null;
     vehicleType = null;
     walletBalance = 0;
+    activationPaid = false;
+    initialTopUpCompleted = false;
   }
 }
