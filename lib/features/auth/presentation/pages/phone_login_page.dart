@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/session/captain_session.dart';
@@ -31,8 +32,19 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
       } else {
         Navigator.push(context, MaterialPageRoute(builder: (_) => CaptainRegisterPage(phone: controller.text.trim(), phoneKey: key)));
       }
-    } catch (_) {
-      if (mounted) setState(() => error = 'تعذر الاتصال بالسيرفر. تأكد من إعداد Firebase وحاول تاني.');
+    } on FirebaseException catch (e) {
+      debugPrint('Firebase login error: code=${e.code}, message=${e.message}');
+      if (!mounted) return;
+      final message = e.code == 'permission-denied'
+          ? 'Firebase رفض قراءة بيانات الكباتن. راجع Realtime Database Rules.'
+          : 'خطأ Firebase: ${e.code} — ${e.message ?? 'حاول مرة أخرى'}';
+      setState(() => error = message);
+    } catch (e, stackTrace) {
+      debugPrint('Captain login error: $e');
+      debugPrintStack(stackTrace: stackTrace);
+      if (mounted) {
+        setState(() => error = 'تعذر الاتصال بالسيرفر: $e');
+      }
     } finally {
       if (mounted) setState(() => loading = false);
     }
