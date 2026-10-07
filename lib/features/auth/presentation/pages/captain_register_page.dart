@@ -37,6 +37,7 @@ class _CaptainRegisterPageState extends State<CaptainRegisterPage> {
       'plateNumber': plate.text.trim(),
       'status': 'pending',
       'activationPaid': false,
+      'initialTopUpCompleted': false,
       'walletBalance': 0,
       'isOnline': false,
       'rating': 5.0,
