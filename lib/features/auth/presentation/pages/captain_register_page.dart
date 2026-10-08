@@ -3,7 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/session/captain_session.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../home/presentation/pages/captain_home_page.dart';
+import 'captain_documents_page.dart';
 
 class CaptainRegisterPage extends StatefulWidget {
   const CaptainRegisterPage({super.key, required this.phone, required this.phoneKey, required this.password});
@@ -57,7 +57,11 @@ class _CaptainRegisterPageState extends State<CaptainRegisterPage> {
       CaptainSession.hydrate(widget.phoneKey, data);
       await CaptainSession.persistLogin(widget.phoneKey);
       if (!mounted) return;
-      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const CaptainHomePage()), (_) => false);
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => CaptainDocumentsPage(phoneKey: widget.phoneKey)),
+        (_) => false,
+      );
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر إنشاء الحساب حالياً')));
     } finally {
