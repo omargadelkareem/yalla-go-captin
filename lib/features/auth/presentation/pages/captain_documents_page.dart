@@ -1,7 +1,5 @@
-import 'dart:typed_data';
-
+import 'dart:convert';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -18,21 +16,25 @@ class CaptainDocumentsPage extends StatefulWidget {
 
 class _CaptainDocumentsPageState extends State<CaptainDocumentsPage> {
   final picker = ImagePicker();
-  final Map<String, XFile> files = {};
+  final Map<String, String> images = {};
   bool loading = false;
 
   Future<void> _pick(String key) async {
     final file = await picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 72,
-      maxWidth: 1400,
+      imageQuality: 38,
+      maxWidth: 720,
+      maxHeight: 960,
     );
-    if (file != null && mounted) setState(() => files[key] = file);
+    if (file == null) return;
+    final bytes = await file.readAsBytes();
+    if (!mounted) return;
+    setState(() => images[key] = base64Encode(bytes));
   }
 
   Future<void> _submit() async {
     const required = ['profile', 'idFront', 'idBack', 'license', 'vehicle'];
-    if (required.any((key) => !files.containsKey(key))) {
+    if (required.any((key) => !images.containsKey(key))) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('ارفع كل الصور المطلوبة أولاً')),
       );
@@ -40,27 +42,19 @@ class _CaptainDocumentsPageState extends State<CaptainDocumentsPage> {
     }
     setState(() => loading = true);
     try {
-      final urls = <String, String>{};
-      for (final key in required) {
-        final Uint8List bytes = await files[key]!.readAsBytes();
-        final ref = FirebaseStorage.instance
-            .ref('captains/${widget.phoneKey}/documents/$key.jpg');
-        await ref.putData(
-          bytes,
-          SettableMetadata(contentType: 'image/jpeg'),
-        );
-        urls[key] = await ref.getDownloadURL();
-      }
+      await FirebaseDatabase.instance
+          .ref('captainDocuments/${widget.phoneKey}')
+          .set({
+        'profileBase64': images['profile'],
+        'nationalIdFrontBase64': images['idFront'],
+        'nationalIdBackBase64': images['idBack'],
+        'driverLicenseBase64': images['license'],
+        'vehiclePhotoBase64': images['vehicle'],
+        'updatedAt': ServerValue.timestamp,
+      });
       await FirebaseDatabase.instance
           .ref('captains/${widget.phoneKey}')
           .update({
-        'profilePhotoUrl': urls['profile'],
-        'documents': {
-          'nationalIdFrontUrl': urls['idFront'],
-          'nationalIdBackUrl': urls['idBack'],
-          'driverLicenseUrl': urls['license'],
-          'vehiclePhotoUrl': urls['vehicle'],
-        },
         'documentsComplete': true,
         'status': 'pending',
         'updatedAt': ServerValue.timestamp,
@@ -74,9 +68,9 @@ class _CaptainDocumentsPageState extends State<CaptainDocumentsPage> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text(
-            'تعذر رفع المستندات. تأكد من تفعيل Firebase Storage: $e',
+            'تعذر رفع المستندات. حاول مرة تانية.',
             textDirection: TextDirection.rtl,
           ),
         ),
@@ -108,16 +102,16 @@ class _CaptainDocumentsPageState extends State<CaptainDocumentsPage> {
         ),
         const SizedBox(height: 6),
         const Text(
-          'لن يتم تفعيل استقبال الرحلات قبل مراجعة بيانات الحساب.',
+          'هنضغط الصور ونحفظها مؤقتاً داخل قاعدة البيانات لحين مراجعة الحساب.',
           textDirection: TextDirection.rtl,
           style: TextStyle(color: AppColors.textMuted),
         ),
         const SizedBox(height: 20),
-        _UploadTile(label: 'صورتك الشخصية', file: files['profile'], onTap: () => _pick('profile')),
-        _UploadTile(label: 'البطاقة - الوجه الأمامي', file: files['idFront'], onTap: () => _pick('idFront')),
-        _UploadTile(label: 'البطاقة - الوجه الخلفي', file: files['idBack'], onTap: () => _pick('idBack')),
-        _UploadTile(label: 'رخصة القيادة', file: files['license'], onTap: () => _pick('license')),
-        _UploadTile(label: 'صورة المركبة', file: files['vehicle'], onTap: () => _pick('vehicle')),
+        _UploadTile(label: 'صورتك الشخصية', done: images.containsKey('profile'), onTap: () => _pick('profile')),
+        _UploadTile(label: 'البطاقة - الوجه الأمامي', done: images.containsKey('idFront'), onTap: () => _pick('idFront')),
+        _UploadTile(label: 'البطاقة - الوجه الخلفي', done: images.containsKey('idBack'), onTap: () => _pick('idBack')),
+        _UploadTile(label: 'رخصة القيادة', done: images.containsKey('license'), onTap: () => _pick('license')),
+        _UploadTile(label: 'صورة المركبة', done: images.containsKey('vehicle'), onTap: () => _pick('vehicle')),
         const SizedBox(height: 12),
         FilledButton(
           onPressed: loading ? null : _submit,
@@ -129,9 +123,9 @@ class _CaptainDocumentsPageState extends State<CaptainDocumentsPage> {
 }
 
 class _UploadTile extends StatelessWidget {
-  const _UploadTile({required this.label, required this.file, required this.onTap});
+  const _UploadTile({required this.label, required this.done, required this.onTap});
   final String label;
-  final XFile? file;
+  final bool done;
   final VoidCallback onTap;
 
   @override
@@ -152,12 +146,12 @@ class _UploadTile extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: file == null ? AppColors.surfaceSoft : const Color(0xFFE5FAF2),
+                  color: done ? const Color(0xFFE5FAF2) : AppColors.surfaceSoft,
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Icon(
-                  file == null ? Icons.add_photo_alternate_outlined : Icons.check_rounded,
-                  color: file == null ? AppColors.turquoiseDark : AppColors.success,
+                  done ? Icons.check_rounded : Icons.add_photo_alternate_outlined,
+                  color: done ? AppColors.success : AppColors.turquoiseDark,
                 ),
               ),
               const SizedBox(width: 12),
@@ -172,9 +166,9 @@ class _UploadTile extends StatelessWidget {
                 ),
               ),
               Text(
-                file == null ? 'اختيار' : 'تم',
+                done ? 'تم' : 'اختيار',
                 style: TextStyle(
-                  color: file == null ? AppColors.textMuted : AppColors.success,
+                  color: done ? AppColors.success : AppColors.textMuted,
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                 ),
