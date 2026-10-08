@@ -361,7 +361,7 @@ class _BottomPanel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 13),
-          if (activated) ...[
+          if (activated)
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
@@ -375,8 +375,7 @@ class _BottomPanel extends StatelessWidget {
                 label: const Text('الرحلات المتاحة'),
               ),
             ),
-            const SizedBox(height: 10),
-          ],
+          if (activated) const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
