@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/session/captain_session.dart';
@@ -5,9 +6,10 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../home/presentation/pages/captain_home_page.dart';
 
 class CaptainRegisterPage extends StatefulWidget {
-  const CaptainRegisterPage({super.key, required this.phone, required this.phoneKey});
+  const CaptainRegisterPage({super.key, required this.phone, required this.phoneKey, required this.password});
   final String phone;
   final String phoneKey;
+  final String password;
 
   @override
   State<CaptainRegisterPage> createState() => _CaptainRegisterPageState();
@@ -46,8 +48,14 @@ class _CaptainRegisterPageState extends State<CaptainRegisterPage> {
       'updatedAt': ServerValue.timestamp,
     };
     try {
+      final account = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: '${widget.phoneKey}@captain.yallago.app',
+        password: widget.password,
+      );
+      data['authUid'] = account.user?.uid;
       await FirebaseDatabase.instance.ref('captains/${widget.phoneKey}').set(data);
       CaptainSession.hydrate(widget.phoneKey, data);
+      await CaptainSession.persistLogin(widget.phoneKey);
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const CaptainHomePage()), (_) => false);
     } catch (_) {
