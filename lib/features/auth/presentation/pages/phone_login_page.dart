@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/yalla_go_captain_logo.dart';
 import '../../../home/presentation/pages/captain_home_page.dart';
 import 'captain_register_page.dart';
+import 'captain_documents_page.dart';
 
 class PhoneLoginPage extends StatefulWidget {
   const PhoneLoginPage({super.key});
@@ -67,7 +68,11 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const CaptainHomePage()),
+        MaterialPageRoute(
+          builder: (_) => CaptainSession.documentsComplete
+              ? const CaptainHomePage()
+              : CaptainDocumentsPage(phoneKey: phoneKey),
+        ),
         (_) => false,
       );
     } on FirebaseAuthException catch (e) {
