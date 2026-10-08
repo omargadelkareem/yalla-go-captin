@@ -345,7 +345,6 @@ class _BottomPanel extends StatelessWidget {
                   ],
                 ),
               ),
-              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -368,7 +367,9 @@ class _BottomPanel extends StatelessWidget {
               child: FilledButton.icon(
                 onPressed: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const AvailableRidesPage()),
+                  MaterialPageRoute(
+                    builder: (_) => const AvailableRidesPage(),
+                  ),
                 ),
                 icon: const Icon(Icons.local_taxi_rounded),
                 label: const Text('الرحلات المتاحة'),
@@ -380,22 +381,16 @@ class _BottomPanel extends StatelessWidget {
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: onWallet,
-              style: FilledButton.styleFrom(
+              style: OutlinedButton.styleFrom(
                 minimumSize: const Size.fromHeight(54),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(18),
                 ),
               ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add_rounded, size: 21),
-                  SizedBox(width: 7),
-                  Text(
-                    'شحن المحفظة',
-                    style: TextStyle(fontWeight: FontWeight.w900),
-                  ),
-                ],
+              icon: const Icon(Icons.add_rounded, size: 21),
+              label: const Text(
+                'شحن المحفظة',
+                style: TextStyle(fontWeight: FontWeight.w900),
               ),
             ),
           ),
