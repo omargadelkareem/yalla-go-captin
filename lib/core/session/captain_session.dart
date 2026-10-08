@@ -18,6 +18,7 @@ class CaptainSession {
   static int tripsCount = 0;
   static bool activationPaid = false;
   static bool initialTopUpCompleted = false;
+  static bool documentsComplete = false;
 
   static bool get hasCaptain => phoneKey != null;
 
@@ -35,6 +36,7 @@ class CaptainSession {
     tripsCount = (data['tripsCount'] as num?)?.toInt() ?? 0;
     activationPaid = data['activationPaid'] == true;
     initialTopUpCompleted = data['initialTopUpCompleted'] == true;
+    documentsComplete = data['documentsComplete'] == true;
   }
 
   static Future<void> persistLogin(String key) async {
@@ -62,5 +64,6 @@ class CaptainSession {
     tripsCount = 0;
     activationPaid = false;
     initialTopUpCompleted = false;
+    documentsComplete = false;
   }
 }
