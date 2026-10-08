@@ -37,6 +37,7 @@ class _CaptainRegisterPageState extends State<CaptainRegisterPage> {
       'vehicleType': vehicleType,
       'vehicleModel': vehicleModel.text.trim(),
       'plateNumber': plate.text.trim(),
+      'documentsComplete': false,
       'status': 'pending',
       'activationPaid': false,
       'initialTopUpCompleted': false,
