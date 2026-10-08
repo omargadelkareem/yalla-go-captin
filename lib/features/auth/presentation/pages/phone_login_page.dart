@@ -43,6 +43,7 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
             builder: (_) => CaptainRegisterPage(
               phone: phoneController.text.trim(),
               phoneKey: phoneKey,
+              password: passwordController.text,
             ),
           ),
         );
