@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/session/captain_session.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'active_ride_page.dart';
 
 class AvailableRidesPage extends StatelessWidget {
   const AvailableRidesPage({super.key});
@@ -161,10 +162,39 @@ class _RideCard extends StatelessWidget {
       'status': 'pending',
       'createdAt': ServerValue.timestamp,
     });
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم إرسال عرضك للعميل')),
-      );
-    }
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('تم إرسال عرضك للعميل')),
+    );
+    _waitForAcceptance(context, rideId, driverId);
+  }
+
+  void _waitForAcceptance(BuildContext context, String rideId, String driverId) {
+    FirebaseDatabase.instance.ref('rideRequests/$rideId').onValue.listen((event) {
+      final raw = event.snapshot.value;
+      if (raw is! Map || !context.mounted) return;
+      final ride = Map<String, dynamic>.from(raw);
+      if (ride['status'] == 'accepted' && ride['acceptedDriverId'] == driverId) {
+        final acceptedOffer = ride['acceptedOfferId']?.toString();
+        if (acceptedOffer == driverId) {
+          final offer = FirebaseDatabase.instance.ref('rideOffers/$rideId/$driverId');
+          offer.get().then((snap) {
+            final offerData = snap.value;
+            if (offerData is Map) {
+              final price = (offerData['price'] as num?)?.toDouble();
+              if (price != null) {
+                FirebaseDatabase.instance.ref('rideRequests/$rideId').update({
+                  'acceptedPrice': price,
+                });
+              }
+            }
+          });
+        }
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => ActiveRidePage(rideId: rideId)),
+        );
+      }
+    });
   }
 }
