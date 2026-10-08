@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import '../../../../core/session/captain_session.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../wallet/presentation/pages/wallet_top_up_page.dart';
+import '../../../rides/presentation/pages/available_rides_page.dart';
 
 class CaptainHomePage extends StatefulWidget {
   const CaptainHomePage({super.key});
@@ -361,9 +362,23 @@ class _BottomPanel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 13),
+          if (activated) ...[
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AvailableRidesPage()),
+                ),
+                icon: const Icon(Icons.local_taxi_rounded),
+                label: const Text('الرحلات المتاحة'),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
           SizedBox(
             width: double.infinity,
-            child: FilledButton(
+            child: OutlinedButton.icon(
               onPressed: onWallet,
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(54),
