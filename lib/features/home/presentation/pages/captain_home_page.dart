@@ -1,5 +1,8 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../../core/session/captain_session.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -487,85 +490,77 @@ class _CaptainMapMarker extends StatelessWidget {
       );
 }
 
-class _MapBackground extends StatelessWidget {
+class _MapBackground extends StatefulWidget {
   const _MapBackground();
 
   @override
-  Widget build(BuildContext context) => Container(
-        color: const Color(0xFFEAF1F4),
-        child: CustomPaint(painter: _MapPainter()),
-      );
+  State<_MapBackground> createState() => _MapBackgroundState();
 }
 
-class _MapPainter extends CustomPainter {
+class _MapBackgroundState extends State<_MapBackground> {
+  Position? position;
+
   @override
-  void paint(Canvas canvas, Size size) {
-    final nile = Paint()
-      ..color = const Color(0xFFBDE9EE)
-      ..strokeWidth = 58
-      ..strokeCap = StrokeCap.round;
-    final nileEdge = Paint()
-      ..color = const Color(0xFFD5F3F5)
-      ..strokeWidth = 68
-      ..strokeCap = StrokeCap.round;
-    final mainRoad = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 12
-      ..strokeCap = StrokeCap.round;
-    final street = Paint()
-      ..color = const Color(0xFFF8FAFB)
-      ..strokeWidth = 7
-      ..strokeCap = StrokeCap.round;
-    final block = Paint()..color = const Color(0xFFDCE6E9);
+  void initState() {
+    super.initState();
+    _locate();
+  }
 
-    final river = Path()
-      ..moveTo(size.width * .78, -30)
-      ..cubicTo(
-        size.width * .60,
-        size.height * .23,
-        size.width * .88,
-        size.height * .45,
-        size.width * .68,
-        size.height * .78,
-      );
-    canvas.drawPath(river, nileEdge);
-    canvas.drawPath(river, nile);
-
-    for (final data in [
-      [.10, .18, .32, .11],
-      [.04, .34, .45, .27],
-      [.12, .51, .57, .42],
-      [.00, .67, .51, .60],
-      [.30, .77, .78, .65],
-    ]) {
-      canvas.drawLine(
-        Offset(size.width * data[0], size.height * data[1]),
-        Offset(size.width * data[2], size.height * data[3]),
-        mainRoad,
-      );
-    }
-
-    for (final x in [.12, .31, .48, .58]) {
-      canvas.drawLine(
-        Offset(size.width * x, size.height * .15),
-        Offset(size.width * (x + .09), size.height * .73),
-        street,
-      );
-    }
-
-    for (var i = 0; i < 13; i++) {
-      final dx = 18.0 + (i % 4) * 72;
-      final dy = 180.0 + (i ~/ 4) * 105;
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(dx, dy, 38, 24),
-          const Radius.circular(6),
+  Future<void> _locate() async {
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) return;
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) return;
+      final value = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
         ),
-        block,
       );
-    }
+      if (mounted) setState(() => position = value);
+    } catch (_) {}
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  Widget build(BuildContext context) {
+    final center = position == null
+        ? const LatLng(26.5569, 31.6948)
+        : LatLng(position!.latitude, position!.longitude);
+    return FlutterMap(
+      options: MapOptions(
+        initialCenter: center,
+        initialZoom: position == null ? 13.5 : 16,
+        minZoom: 4,
+        maxZoom: 19,
+      ),
+      children: [
+        TileLayer(
+          urlTemplate:
+              'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+          subdomains: const ['a', 'b', 'c', 'd'],
+          userAgentPackageName: 'com.example.yalla_go_captain',
+          maxNativeZoom: 19,
+        ),
+        MarkerLayer(
+          markers: [
+            Marker(
+              point: center,
+              width: 96,
+              height: 96,
+              child: const _CaptainMapMarker(),
+            ),
+          ],
+        ),
+        RichAttributionWidget(
+          attributions: const [
+            TextSourceAttribution('OpenStreetMap contributors'),
+            TextSourceAttribution('CARTO'),
+          ],
+        ),
+      ],
+    );
+  }
 }
