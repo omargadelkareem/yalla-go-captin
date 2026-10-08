@@ -7,6 +7,7 @@ import '../../../../core/session/captain_session.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/yalla_go_captain_logo.dart';
 import '../../../auth/presentation/pages/phone_login_page.dart';
+import '../../../auth/presentation/pages/captain_documents_page.dart';
 import '../../../home/presentation/pages/captain_home_page.dart';
 
 class SplashPage extends StatefulWidget {
@@ -37,7 +38,11 @@ class _SplashPageState extends State<SplashPage> {
           if (!mounted) return;
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const CaptainHomePage()),
+            MaterialPageRoute(
+              builder: (_) => CaptainSession.documentsComplete
+                  ? const CaptainHomePage()
+                  : CaptainDocumentsPage(phoneKey: key),
+            ),
           );
           return;
         }
