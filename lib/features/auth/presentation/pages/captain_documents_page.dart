@@ -23,9 +23,9 @@ class _CaptainDocumentsPageState extends State<CaptainDocumentsPage> {
   Future<void> _pick(String key) async {
     final file = await picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 38,
-      maxWidth: 720,
-      maxHeight: 960,
+      imageQuality: 28,
+      maxWidth: 600,
+      maxHeight: 800,
     );
     if (file == null) return;
     final bytes = await file.readAsBytes();
@@ -56,11 +56,13 @@ class _CaptainDocumentsPageState extends State<CaptainDocumentsPage> {
       final docsRef = FirebaseDatabase.instance
           .ref('captainDocuments/${widget.phoneKey}');
 
-      await docsRef.child('profileBase64').set(images['profile']);
-      await docsRef.child('nationalIdFrontBase64').set(images['idFront']);
-      await docsRef.child('nationalIdBackBase64').set(images['idBack']);
-      await docsRef.child('driverLicenseBase64').set(images['license']);
-      await docsRef.child('vehiclePhotoBase64').set(images['vehicle']);
+      await Future.wait([
+        docsRef.child('profileBase64').set(images['profile']),
+        docsRef.child('nationalIdFrontBase64').set(images['idFront']),
+        docsRef.child('nationalIdBackBase64').set(images['idBack']),
+        docsRef.child('driverLicenseBase64').set(images['license']),
+        docsRef.child('vehiclePhotoBase64').set(images['vehicle']),
+      ]);
       await docsRef.child('updatedAt').set(ServerValue.timestamp);
 
       await FirebaseDatabase.instance
