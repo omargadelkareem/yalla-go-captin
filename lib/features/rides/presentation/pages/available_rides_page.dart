@@ -175,21 +175,18 @@ class _RideCard extends StatelessWidget {
       if (raw is! Map || !context.mounted) return;
       final ride = Map<String, dynamic>.from(raw);
       if (ride['status'] == 'accepted' && ride['acceptedDriverId'] == driverId) {
-        final acceptedOffer = ride['acceptedOfferId']?.toString();
-        if (acceptedOffer == driverId) {
-          final offer = FirebaseDatabase.instance.ref('rideOffers/$rideId/$driverId');
-          offer.get().then((snap) {
-            final offerData = snap.value;
-            if (offerData is Map) {
-              final price = (offerData['price'] as num?)?.toDouble();
-              if (price != null) {
-                FirebaseDatabase.instance.ref('rideRequests/$rideId').update({
-                  'acceptedPrice': price,
-                });
-              }
+        final offer = FirebaseDatabase.instance.ref('rideOffers/$rideId/$driverId');
+        offer.get().then((snap) {
+          final offerData = snap.value;
+          if (offerData is Map) {
+            final price = (offerData['price'] as num?)?.toDouble();
+            if (price != null) {
+              FirebaseDatabase.instance.ref('rideRequests/$rideId').update({
+                'acceptedPrice': price,
+              });
             }
-          });
-        }
+          }
+        });
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => ActiveRidePage(rideId: rideId)),
