@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -40,19 +41,30 @@ class _CaptainDocumentsPageState extends State<CaptainDocumentsPage> {
       );
       return;
     }
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('انتهت جلسة الدخول. سجل دخولك مرة أخرى.')),
+      );
+      return;
+    }
+
     setState(() => loading = true);
     try {
+      // RTDB has a per-write size limit. Sending five Base64 images in one
+      // set() can exceed it, so upload each compressed document separately.
+      final docsRef = FirebaseDatabase.instance
+          .ref('captainDocuments/${widget.phoneKey}');
+
+      await docsRef.child('profileBase64').set(images['profile']);
+      await docsRef.child('nationalIdFrontBase64').set(images['idFront']);
+      await docsRef.child('nationalIdBackBase64').set(images['idBack']);
+      await docsRef.child('driverLicenseBase64').set(images['license']);
+      await docsRef.child('vehiclePhotoBase64').set(images['vehicle']);
+      await docsRef.child('updatedAt').set(ServerValue.timestamp);
+
       await FirebaseDatabase.instance
-          .ref('captainDocuments/${widget.phoneKey}')
-          .set({
-        'profileBase64': images['profile'],
-        'nationalIdFrontBase64': images['idFront'],
-        'nationalIdBackBase64': images['idBack'],
-        'driverLicenseBase64': images['license'],
-        'vehiclePhotoBase64': images['vehicle'],
-        'updatedAt': ServerValue.timestamp,
-      });
-      await FirebaseDatabase.instance
+
           .ref('captains/${widget.phoneKey}')
           .update({
         'documentsComplete': true,
@@ -65,12 +77,20 @@ class _CaptainDocumentsPageState extends State<CaptainDocumentsPage> {
         MaterialPageRoute(builder: (_) => const CaptainHomePage()),
         (_) => false,
       );
+    } on FirebaseException catch (e) {
+      if (!mounted) return;
+      final message = e.code == 'permission-denied'
+          ? 'Firebase رفض حفظ المستندات بسبب صلاحيات قاعدة البيانات.'
+          : 'تعذر رفع المستندات: ${e.code}';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message, textDirection: TextDirection.rtl)),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'تعذر رفع المستندات. حاول مرة تانية.',
+            'تعذر رفع المستندات: $e',
             textDirection: TextDirection.rtl,
           ),
         ),
