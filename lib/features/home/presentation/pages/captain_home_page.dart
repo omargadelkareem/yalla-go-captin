@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -18,16 +19,40 @@ class CaptainHomePage extends StatefulWidget {
 
 class _CaptainHomePageState extends State<CaptainHomePage> {
   bool online = false;
+  StreamSubscription<DatabaseEvent>? _captainSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    final key = CaptainSession.phoneKey;
+    if (key != null) {
+      _captainSubscription = FirebaseDatabase.instance.ref('captains/$key').onValue.listen((event) {
+        final raw = event.snapshot.value;
+        if (raw is Map) {
+          final data = Map<String, dynamic>.from(raw);
+          CaptainSession.hydrate(key, data);
+          if (mounted) setState(() => online = data['isOnline'] == true);
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _captainSubscription?.cancel();
+    super.dispose();
+  }
 
   bool get approved => CaptainSession.status == 'approved';
   bool get activated => approved &&
       CaptainSession.activationPaid &&
-      CaptainSession.initialTopUpCompleted;
+      CaptainSession.initialTopUpCompleted &&
+      CaptainSession.rideAccessEnabled;
 
   Future<void> _toggleOnline() async {
     if (!activated) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('أكمل تفعيل الحساب وشحن المحفظة أولاً')),
+        const SnackBar(content: Text('استقبال الرحلات غير مفعل. راجع حالة الحساب والمحفظة')),
       );
       return;
     }
@@ -166,7 +191,7 @@ class _CaptainHomePageState extends State<CaptainHomePage> {
                                   ? 'هنعرض لك الرحلات القريبة فور وصولها'
                                   : activated
                                       ? 'اضغط هنا وابدأ استقبال الرحلات'
-                                      : 'أكمل تفعيل الحساب والمحفظة للبدء',
+                                      : 'استقبال الرحلات غير مفعل من الإدارة',
                               textDirection: TextDirection.rtl,
                               style: TextStyle(
                                 color: online
