@@ -19,7 +19,6 @@ class CaptainSession {
   static bool activationPaid = false;
   static bool initialTopUpCompleted = false;
   static bool documentsComplete = false;
-    rideAccessEnabled = false;
   static bool rideAccessEnabled = false;
 
   static bool get hasCaptain => phoneKey != null;
@@ -68,5 +67,6 @@ class CaptainSession {
     activationPaid = false;
     initialTopUpCompleted = false;
     documentsComplete = false;
+    rideAccessEnabled = false;
   }
 }
