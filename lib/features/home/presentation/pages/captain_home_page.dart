@@ -45,7 +45,6 @@ class _CaptainHomePageState extends State<CaptainHomePage> {
 
   bool get approved => CaptainSession.status == 'approved';
   bool get activated => approved &&
-      CaptainSession.activationPaid &&
       CaptainSession.initialTopUpCompleted &&
       CaptainSession.rideAccessEnabled;
 
