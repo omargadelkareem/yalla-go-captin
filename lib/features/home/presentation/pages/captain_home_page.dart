@@ -9,6 +9,9 @@ import '../../../../core/session/captain_session.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../wallet/presentation/pages/wallet_top_up_page.dart';
 import '../../../rides/presentation/pages/available_rides_page.dart';
+import '../../../history/presentation/pages/ride_history_page.dart';
+import '../../../wallet/presentation/pages/wallet_page.dart';
+import '../../../more/presentation/pages/more_page.dart';
 
 class CaptainHomePage extends StatefulWidget {
   const CaptainHomePage({super.key});
@@ -89,7 +92,13 @@ class _CaptainHomePageState extends State<CaptainHomePage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _GlassButton(icon: Icons.menu_rounded, onTap: () {}),
+                  _GlassButton(
+                    icon: Icons.menu_rounded,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MorePage()),
+                    ),
+                  ),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 14,
@@ -400,6 +409,32 @@ class _BottomPanel extends StatelessWidget {
               ),
             ),
           if (activated) const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const RideHistoryPage()),
+                  ),
+                  icon: const Icon(Icons.history_rounded, size: 19),
+                  label: const Text('رحلاتي'),
+                ),
+              ),
+              const SizedBox(width: 9),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const WalletPage()),
+                  ),
+                  icon: const Icon(Icons.account_balance_wallet_outlined, size: 19),
+                  label: const Text('المحفظة'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
